@@ -807,23 +807,34 @@
             return;
         }
 
-        NSMutableArray *values = [NSMutableArray array];
+        NSMutableArray *data = [NSMutableArray array];
 
         [results enumerateStatisticsFromDate:anchorDate
                                       toDate:[anchorDate dateByAddingTimeInterval:23 * 3600]
                                    withBlock:^(HKStatistics *result, BOOL *stop) {
 
             HKQuantity *quantity = result.sumQuantity;
+            NSDate *startDate = result.startDate;
+            NSDate *endDate = result.endDate;
+            NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:startDate];
+            NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:endDate];
+
+            double value = 0;
 
             if (quantity) {
-                double value = [quantity doubleValueForUnit:[HKUnit countUnit]];
-                [values addObject:@(value)];
-            } else {
-                [values addObject:@0];
+                value = [quantity doubleValueForUnit:[HKUnit countUnit]];
             }
+
+            NSMutableDictionary *elem = @{
+                @"value" : @(value),
+                @"startDate" : startDateString,
+                @"endDate" : endDateString,
+            };
+
+            [data addObject:elem];
         }];
 
-        completionHandler(values, nil);
+        completionHandler(data, nil);
     };
 
     [self.healthStore executeQuery:query];
