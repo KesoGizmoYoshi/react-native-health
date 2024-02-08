@@ -808,42 +808,21 @@
         }
 
         NSMutableArray *values = [NSMutableArray array];
-        //NSMutableArray *startDates = [NSMutableArray array];
 
         [results enumerateStatisticsFromDate:anchorDate
                                       toDate:[anchorDate dateByAddingTimeInterval:23 * 3600]
                                    withBlock:^(HKStatistics *result, BOOL *stop) {
 
             HKQuantity *quantity = result.sumQuantity;
-            //NSDate *startDate = result.startDate;
 
             if (quantity) {
                 double value = [quantity doubleValueForUnit:[HKUnit countUnit]];
                 [values addObject:@(value)];
-                //[startDates addObject:startDate];
             } else {
                 [values addObject:@0];
             }
         }];
 
-        // NSMutableArray *hourlyDataArray = [NSMutableArray array];
-
-        // // Iterate through the expected 24 hours
-        // for (NSInteger hour = 0; hour < 24; hour++) {
-        //     // Check if there's data for the current hour
-        //     NSInteger index = [startDates indexOfObjectPassingTest:^BOOL(NSDate *startDate, NSUInteger idx, BOOL *stop) {
-        //         NSCalendar *calendar = [NSCalendar currentCalendar];
-        //         NSUInteger components = NSCalendarUnitHour;
-        //         NSDateComponents *hourComponent = [calendar components:components fromDate:startDate];
-        //         return hourComponent.hour == hour;
-        //     }];
-
-        //     if (index != NSNotFound) {
-        //         [hourlyDataArray addObject:values[index]];
-        //     } else {
-        //         [hourlyDataArray addObject:@0];
-        //     }
-        // }
         completionHandler(values, nil);
     };
 
