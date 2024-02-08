@@ -844,7 +844,7 @@
         //         [hourlyDataArray addObject:@0];
         //     }
         // }
-        completionHandler(hourlyDataArray, nil);
+        completionHandler(values, nil);
     };
 
     [self.healthStore executeQuery:query];
