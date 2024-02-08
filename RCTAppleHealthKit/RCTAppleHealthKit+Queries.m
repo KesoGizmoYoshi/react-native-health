@@ -773,6 +773,83 @@
     [self.healthStore executeQuery:query];
 }
 
+- (void)fetchHourlySamplesOfType:(HKQuantityType *)quantityType
+                                 unit:(HKUnit *)unit
+                 includeManuallyAdded:(BOOL)includeManuallyAdded
+                                  day:(NSDate *)day
+                           completion:(void (^)(NSArray *, NSError *))completionHandler {
+    
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSDateComponents *interval = [[NSDateComponents alloc] init];
+    interval.hour = 1;
+    NSDateComponents *anchorComponents = [calendar components:NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear
+                                                     fromDate:day];
+    anchorComponents.hour = 0;
+    anchorComponents.minute = 0;
+    anchorComponents.second = 0;
+    NSDate *anchorDate = [calendar dateFromComponents:anchorComponents];
+    NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:anchorDate endDate:[anchorDate dateByAddingTimeInterval:24 * 3600] options:HKQueryOptionNone];
+
+    if (!includeManuallyAdded) {
+        NSPredicate *manualDataPredicate = [NSPredicate predicateWithFormat:@"metadata.%K != YES", HKMetadataKeyWasUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[predicate, manualDataPredicate]];
+    }
+
+    HKStatisticsCollectionQuery *query = [[HKStatisticsCollectionQuery alloc] initWithQuantityType:quantityType
+                                                                           quantitySamplePredicate:predicate
+                                                                                           options:HKStatisticsOptionCumulativeSum
+                                                                                        anchorDate:anchorDate
+                                                                                intervalComponents:interval];
+
+    query.initialResultsHandler = ^(HKStatisticsCollectionQuery *query, HKStatisticsCollection *results, NSError *error) {
+        if (error != nil) {
+            completionHandler(nil, error);
+            return;
+        }
+
+        NSMutableArray *values = [NSMutableArray array];
+        //NSMutableArray *startDates = [NSMutableArray array];
+
+        [results enumerateStatisticsFromDate:anchorDate
+                                      toDate:[anchorDate dateByAddingTimeInterval:23 * 3600]
+                                   withBlock:^(HKStatistics *result, BOOL *stop) {
+
+            HKQuantity *quantity = result.sumQuantity;
+            //NSDate *startDate = result.startDate;
+
+            if (quantity) {
+                double value = [quantity doubleValueForUnit:[HKUnit countUnit]];
+                [values addObject:@(value)];
+                //[startDates addObject:startDate];
+            } else {
+                [values addObject:@0];
+            }
+        }];
+
+        // NSMutableArray *hourlyDataArray = [NSMutableArray array];
+
+        // // Iterate through the expected 24 hours
+        // for (NSInteger hour = 0; hour < 24; hour++) {
+        //     // Check if there's data for the current hour
+        //     NSInteger index = [startDates indexOfObjectPassingTest:^BOOL(NSDate *startDate, NSUInteger idx, BOOL *stop) {
+        //         NSCalendar *calendar = [NSCalendar currentCalendar];
+        //         NSUInteger components = NSCalendarUnitHour;
+        //         NSDateComponents *hourComponent = [calendar components:components fromDate:startDate];
+        //         return hourComponent.hour == hour;
+        //     }];
+
+        //     if (index != NSNotFound) {
+        //         [hourlyDataArray addObject:values[index]];
+        //     } else {
+        //         [hourlyDataArray addObject:@0];
+        //     }
+        // }
+        completionHandler(hourlyDataArray, nil);
+    };
+
+    [self.healthStore executeQuery:query];
+}
+
 - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
                                           unit:(HKUnit *)unit
                                      startDate:(NSDate *)startDate

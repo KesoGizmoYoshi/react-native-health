@@ -39,6 +39,12 @@
                                    day:(NSDate *)day
                            completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler;
 
+- (void)fetchHourlySamplesOfType:(HKQuantityType *)quantityType
+                                 unit:(HKUnit *)unit
+                 includeManuallyAdded:(BOOL)includeManuallyAdded
+                                  day:(NSDate *)day
+                           completion:(void (^)(NSArray *, NSError *))completionHandler;
+
 - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
                                           unit:(HKUnit *)unit
                                      startDate:(NSDate *)startDate

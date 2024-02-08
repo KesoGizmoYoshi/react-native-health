@@ -145,6 +145,11 @@ declare module 'react-native-health' {
       callback: (err: string, results: HealthValue) => void,
     ): void
 
+    getStepCountHourly(
+      options: HealthInputOptions,
+      callback: (err: string, results: Array<HealthValue>) => void,
+    ): void
+
     getSamples(
       options: HealthInputOptions,
       callback: (err: string, results: Array<HealthValue>) => void,
@@ -462,7 +467,6 @@ declare module 'react-native-health' {
       callback: (error: string, result: HealthValue) => void,
     ): void
 
-
     Constants: Constants
   }
 
@@ -546,7 +550,7 @@ declare module 'react-native-health' {
     PausedOrResumeRequest = 'pause or resume request',
     Lap = 'lap',
     Segment = 'segment',
-    Marker = 'marker'
+    Marker = 'marker',
   }
 
   export type HKWorkoutEventType = {
